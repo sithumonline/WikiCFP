@@ -72,9 +72,19 @@ const scrape = (page) => {
     note = "";
   }
 
+  let categories = $(
+    "body > div:nth-child(5) > center > table > tbody > tr:nth-child(5) > td > table > tbody > tr > td > table > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td > h5"
+  ).text();
+
+  categories = categories
+    .split("   ")
+    .slice(1)
+    .map((category) => category.trim());
+
   return {
     deadline,
     note,
+    categories,
   };
 };
 
