@@ -5,7 +5,22 @@ const cheerio = require("cheerio");
 const { promises } = require("dns");
 
 const wikicfp = "http://www.wikicfp.com/cfp/rss?cat=";
-const categories = ["software"];
+const categories = [
+  "computer science",
+  "security",
+  "software engineering",
+  "information technology",
+  "communications",
+  "networking",
+  "information systems",
+  "databases",
+  "networks",
+  "computer engineering",
+  "semantic web",
+  "software",
+  "distributed systems",
+  "blockchain",
+];
 const urls = categories.map((category) => wikicfp + category);
 
 // <?xml version="1.0" encoding="UTF-8"?>
@@ -81,10 +96,15 @@ const scrape = (page) => {
     .slice(1)
     .map((category) => category.trim());
 
+  const link = $(
+    "body > div:nth-child(5) > center > table > tbody > tr:nth-child(3) > td > a"
+  ).text();
+
   return {
     deadline,
     note,
     categories,
+    link,
   };
 };
 
@@ -93,6 +113,12 @@ const main = () => {
     .then(parseAll)
     .then(async (conferences) => {
       const all = (await Promise.all(conferences)).flat();
+      // sort by deadline
+      all.sort((a, b) => {
+        const aDate = new Date(a.deadline);
+        const bDate = new Date(b.deadline);
+        return aDate - bDate;
+      });
       saveCsv(all, "conferences.csv");
     });
 };
