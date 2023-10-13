@@ -42,20 +42,22 @@ const urls = categories.map((category) => wikicfp + category);
 
 const parse = (xml) => {
   const feed = htmlparser.parseFeed(xml);
-  const conferences = feed.items.map((item) =>
-    fetch(item.link).then((page) => {
-      const pageData = scrape(page);
-      const { title, link, description } = item;
-      const name = clearTitle(title);
-      return {
-        title,
-        link,
-        description,
-        ...pageData,
-        name,
-      };
-    })
-  );
+  const conferences = feed.items.map(async (item) => {
+    const page = await fetch(item.link);
+    const pageData = scholar(page);
+    const { title, link, description } = item;
+    const name = clearTitle(title);
+    const google = await fetch(googleScholar + name);
+    const h5 = scholar(google);
+    return {
+      title,
+      link,
+      description,
+      ...pageData,
+      name,
+      h5,
+    };
+  });
   return Promise.all(conferences);
 };
 
@@ -110,6 +112,20 @@ const scrape = (page) => {
     categories,
     link,
   };
+};
+
+const scholar = (page) => {
+  const $ = cheerio.load(page);
+  const table = $("#gsc_mvt_table");
+  const rows = table.find("tr");
+  const hData = [];
+  rows.map((_i, row) => {
+    const data = $(row).find("td");
+    if (data.length === 4) {
+      hData.push(data.children(".gsc_mp_anchor").first().text());
+    }
+  });
+  return hData;
 };
 
 // Example titles
